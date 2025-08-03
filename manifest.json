@@ -1,11 +1,11 @@
 {
-  "name": "Redimensionar Varias Imágenes",
-  "short_name": "recortar",
+  "name": "img cut",
+  "short_name": "cut img",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#2980b9",
-  "description": "App para redimensionar varias imágenes y descargar en ZIP.",
+  "background_color": "#c8f002",
+  "theme_color": "#f0020a",
+  "description": "instala la app",
   "icons": [
     {
       "src": "192.png",
