@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Redimensionar Varias Imágenes y Descargar ZIP</title>
+<link rel="manifest" href="manifest.json" />
+<style>
+  /* Reset básico */
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  body {
+    background: #f5f7fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+    margin: 0;
+    padding: 20px 10px;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .container {
+    background: #ffffff;
+    max-width: 960px;
+    width: 100%;
+    padding: 30px 25px;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  }
+  h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    font-weight: 700;
+    color: #2c3e50;
+  }
+
+  input[type="file"] {
+    display: block;
+    margin: 0 auto 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #34495e;
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    max-width: 560px;
+    margin: 0 auto 20px;
+    justify-content: center;
+    gap: 20px;
+  }
+
+  .controls label {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    color: #34495e;
+    user-select: none;
+  }
+
+  input[type="number"] {
+    margin-left: 8px;
+    padding: 6px 10px;
+    font-size: 1rem;
+    border: 1.8px solid #bdc3c7;
+    border-radius: 6px;
+    width: 90px;
+    transition: border-color 0.3s ease;
+  }
+  input[type="number"]:focus {
+    border-color: #2980b9;
+    outline: none;
+  }
+  input[type="checkbox"] {
+    margin-left: 6px;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+  }
+
+  button {
+    background: #2980b9;
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(41, 128, 185, 0.4);
+    transition: background-color 0.3s ease;
+    flex-shrink: 0;
+  }
+  button:disabled {
+    background: #95a5a6;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  button:hover:not(:disabled) {
+    background: #1c5980;
+  }
+
+  .image-wrapper {
+    margin-top: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 22px;
+    justify-content: center;
+  }
+
+  .single-image {
+    background: #fafafa;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 12px 10px 15px;
+    width: 190px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: box-shadow 0.3s ease;
+  }
+  .single-image:hover {
+    box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+  }
+
+  .single-image img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));
+  }
+
+  button.download-btn {
+    background: #27ae60;
+    padding: 8px 16px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(39, 174, 96, 0.45);
+    width: 100%;
+  }
+  button.download-btn:hover {
+    background: #1e874b;
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .controls {
+      max-width: 100%;
+      gap: 15px;
+      justify-content: center;
+    }
+    .single-image {
+      width: 45vw;
+    }
+  }
+  @media (max-width: 400px) {
+    input[type="number"] {
+      width: 70px;
+      font-size: 0.9rem;
+    }
+    button {
+      padding: 10px 18px;
+      font-size: 0.95rem;
+    }
+    button.download-btn {
+      font-size: 0.9rem;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="container" role="main" aria-label="Redimensionar imágenes y descarga ZIP">
+    <h2>Redimensionar Varias Imágenes y Descargar ZIP</h2>
+    <input type="file" id="inputFiles" accept="image/*" multiple aria-describedby="fileHelp" />
+    <div id="fileHelp" style="text-align:center; color:#7f8c8d; font-size:0.9rem; margin-bottom:12px;">
+      Selecciona varias imágenes desde tu dispositivo
+    </div>
+    <div class="controls" role="region" aria-label="Controles de tamaño y opciones">
+      <label for="widthInput">Ancho (px):
+        <input type="number" id="widthInput" min="1" value="300" disabled aria-disabled="true" />
+      </label>
+      <label for="heightInput">Alto (px):
+        <input type="number" id="heightInput" min="1" value="300" disabled aria-disabled="true" />
+      </label>
+      <label for="lockRatio">
+        Bloquear proporción
+        <input type="checkbox" id="lockRatio" checked disabled aria-disabled="true" />
+      </label>
+      <button id="resizeBtn" disabled aria-disabled="true">Redimensionar y Generar ZIP</button>
+    </div>
+    <div class="image-wrapper" id="imageWrapper" aria-live="polite" aria-label="Img"></div>
+  </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('service-worker.js')
+      .then(reg => console.log('Service Worker registrado:', reg.scope))
+      .catch(err => console.warn('Error registro Service Worker:', err));
+    });
+  }
+
+  const inputFiles = document.getElementById('inputFiles');
+  const widthInput = document.getElementById('widthInput');
+  const heightInput = document.getElementById('heightInput');
+  const lockRatio = document.getElementById('lockRatio');
+  const resizeBtn = document.getElementById('resizeBtn');
+  const imageWrapper = document.getElementById('imageWrapper');
+
+  let imagesData = []; // {file, img, ratio}
+
+  inputFiles.addEventListener('change', () => {
+    imageWrapper.innerHTML = '';
+    imagesData = [];
+
+    const files = Array.from(inputFiles.files).filter(f => f.type.startsWith('image/'));
+
+    if (files.length === 0) {
+      widthInput.disabled = true;
+      heightInput.disabled = true;
+      lockRatio.disabled = true;
+      resizeBtn.disabled = true;
+      alert('Por favor selecciona al menos una imagen válida.');
+      return;
+    }
+
+    // Cargar la primera imagen para setear inputs
+    const firstReader = new FileReader();
+    firstReader.onload = e => {
+      const firstImg = new Image();
+      firstImg.onload = () => {
+        widthInput.value = firstImg.naturalWidth;
+        heightInput.value = firstImg.naturalHeight;
+        widthInput.disabled = false;
+        heightInput.disabled = false;
+        lockRatio.disabled = false;
+        resizeBtn.disabled = false;
+        widthInput.setAttribute('aria-disabled', 'false');
+        heightInput.setAttribute('aria-disabled', 'false');
+        lockRatio.setAttribute('aria-disabled', 'false');
+        resizeBtn.setAttribute('aria-disabled', 'false');
+
+        imagesData.push({ file: files[0], img: firstImg, ratio: firstImg.naturalWidth / firstImg.naturalHeight });
+
+        // Cargar el resto de imágenes
+        for (let i = 1; i < files.length; i++) {
+          const reader = new FileReader();
+          reader.onload = evt => {
+            const img = new Image();
+            img.onload = () => {
+              imagesData.push({ file: files[i], img: img, ratio: img.naturalWidth / img.naturalHeight });
+            };
+            img.src = evt.target.result;
+          };
+          reader.readAsDataURL(files[i]);
+        }
+      };
+      firstImg.src = e.target.result;
+    };
+    firstReader.readAsDataURL(files[0]);
+  });
+
+  // Mantener proporción al cambiar ancho o alto global
+  widthInput.addEventListener('input', () => {
+    if (lockRatio.checked) {
+      const w = parseInt(widthInput.value);
+      if (isNaN(w) || w < 1) return;
+      const ratio = imagesData.length > 0 ? imagesData[0].ratio : 1;
+      const h = Math.round(w / ratio);
+      heightInput.value = h;
+    }
+  });
+
+  heightInput.addEventListener('input', () => {
+    if (lockRatio.checked) {
+      const h = parseInt(heightInput.value);
+      if (isNaN(h) || h < 1) return;
+      const ratio = imagesData.length > 0 ? imagesData[0].ratio : 1;
+      const w = Math.round(h * ratio);
+      widthInput.value = w;
+    }
+  });
+
+  resizeBtn.addEventListener('click', async () => {
+    if (imagesData.length === 0) {
+      alert('No hay imágenes para redimensionar.');
+      return;
+    }
+
+    imageWrapper.innerHTML = '';
+    const zip = new JSZip();
+
+    const targetWidth = parseInt(widthInput.value);
+    const targetHeight = parseInt(heightInput.value);
+    if (isNaN(targetWidth) || targetWidth < 1 || isNaN(targetHeight) || targetHeight < 1) {
+      alert('Ingresa dimensiones válidas.');
+      return;
+    }
+
+    // Desactivar botón mientras procesa
+    resizeBtn.disabled = true;
+    resizeBtn.textContent = 'Procesando...';
+
+    for (const { file, img, ratio } of imagesData) {
+      let newWidth = targetWidth;
+      let newHeight = targetHeight;
+
+      if (lockRatio.checked) {
+        if ((targetWidth / targetHeight) > ratio) {
+          newWidth = Math.round(targetHeight * ratio);
+          newHeight = targetHeight;
+        } else {
+          newWidth = targetWidth;
+          newHeight = Math.round(targetWidth / ratio);
+        }
+      }
+
+      // Redimensionar en canvas
+      const canvas = document.createElement('canvas');
+      canvas.width = newWidth;
+      canvas.height = newHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, newWidth, newHeight);
+
+      // Obtener Blob comprimido JPEG 0.7
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.7));
+
+      // Añadir al ZIP con nombre ajustado
+      const baseName = file.name.replace(/\.[^/.]+$/, '');
+      zip.file(`${baseName}_redimensionada.jpg`, blob);
+
+      // Mostrar imagen previa
+      const div = document.createElement('div');
+      div.className = 'single-image';
+      const imageElement = document.createElement('img');
+      imageElement.src = URL.createObjectURL(blob);
+      imageElement.alt = 'Imagen redimensionada';
+      div.appendChild(imageElement);
+      imageWrapper.appendChild(div);
+    }
+
+    // Generar ZIP y disparar descarga
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    const zipUrl = URL.createObjectURL(zipBlob);
+    const a = document.createElement('a');
+    a.href = zipUrl;
+    a.download = 'imagenes_redimensionadas.zip';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    // Liberar URL luego
+    setTimeout(() => URL.revokeObjectURL(zipUrl), 15000);
+
+    // Reactivar botón
+    resizeBtn.disabled = false;
+    resizeBtn.textContent = 'Redimensionar y Generar ZIP';
+  });
+</script>
+</body>
+</html>
