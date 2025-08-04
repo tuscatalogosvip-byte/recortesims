@@ -193,6 +193,7 @@
       </label>
       <button id="resizeBtn" disabled aria-disabled="true">Redimensionar y Generar ZIP</button>
     </div>
+    <button id="btnInstall" style="display:none; margin: 10px auto; padding:10px 20px; font-weight:bold;">Instalar App</button>
     <div class="image-wrapper" id="imageWrapper" aria-live="polite" aria-label="Imágenes redimensionadas"></div>
   </div>
 
@@ -303,7 +304,6 @@
       return;
     }
 
-    // Desactivar botón mientras procesa
     resizeBtn.disabled = true;
     resizeBtn.textContent = 'Procesando...';
 
@@ -321,7 +321,6 @@
         }
       }
 
-      // Redimensionar en canvas
       const canvas = document.createElement('canvas');
       canvas.width = newWidth;
       canvas.height = newHeight;
@@ -330,14 +329,11 @@
       ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(img, 0, 0, newWidth, newHeight);
 
-      // Obtener Blob comprimido JPEG 0.7
       const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.7));
 
-      // Añadir al ZIP con nombre ajustado
       const baseName = file.name.replace(/\.[^/.]+$/, '');
       zip.file(`${baseName}_redimensionada.jpg`, blob);
 
-      // Mostrar imagen previa
       const div = document.createElement('div');
       div.className = 'single-image';
       const imageElement = document.createElement('img');
@@ -347,7 +343,6 @@
       imageWrapper.appendChild(div);
     }
 
-    // Generar ZIP y disparar descarga
     const zipBlob = await zip.generateAsync({ type: 'blob' });
     const zipUrl = URL.createObjectURL(zipBlob);
     const a = document.createElement('a');
@@ -357,20 +352,13 @@
     a.click();
     document.body.removeChild(a);
 
-    // Liberar URL luego
     setTimeout(() => URL.revokeObjectURL(zipUrl), 15000);
 
-    // Reactivar botón
     resizeBtn.disabled = false;
     resizeBtn.textContent = 'Redimensionar y Generar ZIP';
   });
-</script>
-</body>
-</html>
 
-
-<script>
-// <script>
+  // Código para manejo de instalación PWA
   let deferredPrompt;
   const btnInstall = document.getElementById('btnInstall');
 
@@ -392,23 +380,6 @@
     deferredPrompt = null;
     btnInstall.style.display = 'none';
   });
-
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('service-worker.js')
-        .then(() => console.log('Service Worker registrado correctamente'))
-        .catch(e => console.error('Error al registrar Service Worker', e));
-    });
-  }
-</script>
-
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
